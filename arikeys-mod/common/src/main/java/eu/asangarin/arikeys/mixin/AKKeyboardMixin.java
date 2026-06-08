@@ -1,14 +1,10 @@
 package eu.asangarin.arikeys.mixin;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import eu.asangarin.arikeys.AriKey;
 import eu.asangarin.arikeys.AriKeys;
 import eu.asangarin.arikeys.AriKeysPlatform;
 import eu.asangarin.arikeys.util.network.KeyPressData;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,26 +14,30 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import net.minecraft.IdentifierException;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 
-@Mixin(KeyBinding.class)
+@Mixin(KeyMapping.class)
 public class AKKeyboardMixin {
 	@Unique
-	private static final List<InputUtil.Key> arikeys$pressedKeys = new ArrayList<>();
+	private static final List<InputConstants.Key> arikeys$pressedKeys = new ArrayList<>();
 
-	@Inject(method = "setKeyPressed", at = @At("HEAD"))
-	private static void input(InputUtil.Key key, boolean pressed, CallbackInfo ci) {
+	@Inject(method = "set", at = @At("HEAD"))
+	private static void input(InputConstants.Key key, boolean pressed, CallbackInfo ci) {
 		// Only check for keybinds while outside a GUI
-		if (MinecraftClient.getInstance().currentScreen != null) return;
+		if (Minecraft.getInstance().screen != null) return;
 
-		Collection<KeyBinding> keyBindings = AriKeysPlatform.getKeyBinding(key);
-		for(KeyBinding binding : keyBindings) {
+		Collection<KeyMapping> keyBindings = AriKeysPlatform.getKeyBinding(key);
+		for(KeyMapping binding : keyBindings) {
 			if (binding != null) {
-				String path = arikeys$cleanTranslationKey(binding.getTranslationKey());
+				String path = arikeys$cleanTranslationKey(binding.getName());
 				try {
-					Identifier id = Identifier.of(Identifier.DEFAULT_NAMESPACE, path);
+					Identifier id = Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, path);
 					if (AriKeys.getVanillaKeys().contains(id))
 						arikeys$registerPress(id, key, pressed);
-				} catch (InvalidIdentifierException id) {
+				} catch (IdentifierException id) {
 					//noinspection CallToPrintStackTrace
 					id.printStackTrace();
 				}
@@ -50,7 +50,7 @@ public class AKKeyboardMixin {
 	}
 
 	@Unique
-	private static void arikeys$registerPress(Identifier id, InputUtil.Key key, boolean pressed) {
+	private static void arikeys$registerPress(Identifier id, InputConstants.Key key, boolean pressed) {
 		// Check if the button was pressed or released
 		if (pressed) {
 			boolean held = arikeys$pressedKeys.contains(key);

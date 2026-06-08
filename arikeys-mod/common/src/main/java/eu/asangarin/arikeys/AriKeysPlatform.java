@@ -1,25 +1,34 @@
 package eu.asangarin.arikeys;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
+import com.mojang.blaze3d.platform.InputConstants;
 import eu.asangarin.arikeys.util.network.KeyPressData;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-
 import java.util.Collection;
+import net.minecraft.client.KeyMapping;
 
 public class AriKeysPlatform {
-	@ExpectPlatform
+	private static Adapter adapter;
+
+	public static void init(Adapter platformAdapter) {
+		adapter = platformAdapter;
+	}
+
 	public static void sendHandshake() {
-		throw new AssertionError();
+		adapter.sendHandshake();
 	}
 
-	@ExpectPlatform
 	public static void sendKey(KeyPressData data) {
-		throw new AssertionError();
+		adapter.sendKey(data);
 	}
 
-	@ExpectPlatform
-	public static Collection<KeyBinding> getKeyBinding(InputUtil.Key code) {
-		throw new AssertionError();
+	public static Collection<KeyMapping> getKeyBinding(InputConstants.Key code) {
+		return adapter.getKeyBinding(code);
+	}
+
+	public interface Adapter {
+		void sendHandshake();
+
+		void sendKey(KeyPressData data);
+
+		Collection<KeyMapping> getKeyBinding(InputConstants.Key code);
 	}
 }

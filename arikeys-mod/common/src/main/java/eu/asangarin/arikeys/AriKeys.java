@@ -4,8 +4,6 @@ import eu.asangarin.arikeys.util.AriKeysIO;
 import eu.asangarin.arikeys.util.KeyCategoryComparator;
 import eu.asangarin.arikeys.util.KeyModifierComparator;
 import eu.asangarin.arikeys.util.network.KeyAddData;
-import net.minecraft.util.Identifier;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -14,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.minecraft.resources.Identifier;
 
 public final class AriKeys {
 	public static final String MOD_ID = "arikeys";

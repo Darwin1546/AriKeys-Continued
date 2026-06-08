@@ -1,15 +1,11 @@
 package eu.asangarin.arikeys.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
+import com.mojang.blaze3d.platform.InputConstants;
 import eu.asangarin.arikeys.AriKey;
 import eu.asangarin.arikeys.AriKeys;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.nbt.NbtCompound;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,18 +18,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 
 /* Minecrafts way of storing keybinds. Not the cleanest, but it works. */
 public class AriKeysIO {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Splitter COLON_SPLITTER = Splitter.on(':').limit(2);
-	private static final File KEYBIND_FILE = new File(MinecraftClient.getInstance().runDirectory, "arikeys.txt");
+	private static final File KEYBIND_FILE = new File(Minecraft.getInstance().gameDirectory, "arikeys.txt");
 
 	public static void load() {
 		try {
 			if (!KEYBIND_FILE.exists()) return;
 
-			NbtCompound nbtCompound = new NbtCompound();
+			CompoundTag nbtCompound = new CompoundTag();
 			BufferedReader bufferedReader = Files.newReader(KEYBIND_FILE, Charsets.UTF_8);
 
 			try {
@@ -60,8 +59,8 @@ public class AriKeysIO {
 			for (AriKey ariKey : AriKeys.getKeybinds()) {
 				String key = "arikey_" + ariKey.getId().toString().replace(":", "+");
 
-				String defKey = ariKey.getBoundKeyCode().getTranslationKey();
-				String keybind = MoreObjects.firstNonNull(nbtCompound.contains(key) ? nbtCompound.getString(key) : null, defKey);
+				String defKey = ariKey.getBoundKeyCode().getName();
+				String keybind = nbtCompound.getStringOr(key, defKey);
 
 				Set<ModifierKey> modifiers = new HashSet<>(ariKey.getModifiers());
 				for (ModifierKey modifier : ModifierKey.ALL) {
@@ -71,12 +70,12 @@ public class AriKeysIO {
 				}
 
 				if (!defKey.equals(keybind))
-					ariKey.setBoundKey(InputUtil.fromTranslationKey(keybind), false);
+					ariKey.setBoundKey(InputConstants.getKey(keybind), false);
 				if (!ariKey.getModifiers().containsAll(modifiers))
 					ariKey.setBoundModifiers(modifiers);
 			}
 
-			KeyBinding.updateKeysByCode();
+			KeyMapping.resetMapping();
 		} catch (Exception exception) {
 			LOGGER.error("Failed to load arikeys bindings", exception);
 		}
@@ -90,7 +89,7 @@ public class AriKeysIO {
 				for (AriKey ariKey : AriKeys.getKeybinds()) {
 					printWriter.print("arikey_" + ariKey.getId().toString().replace(":", "+"));
 					printWriter.print(':');
-					printWriter.println(ariKey.getBoundKeyCode().getTranslationKey());
+					printWriter.println(ariKey.getBoundKeyCode().getName());
 
 					for (ModifierKey modifier : ariKey.getBoundModifiers()) {
 						printWriter.print("arikey_" + ariKey.getId().toString().replace(":", "+") + "_" + modifier.getId());

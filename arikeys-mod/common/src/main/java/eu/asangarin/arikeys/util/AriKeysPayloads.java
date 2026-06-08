@@ -2,85 +2,85 @@ package eu.asangarin.arikeys.util;
 
 import eu.asangarin.arikeys.util.network.KeyAddData;
 import eu.asangarin.arikeys.util.network.KeyPressData;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public class AriKeysPayloads {
-	public record Handshake() implements CustomPayload {
-		public static final Id<Handshake> ID = new Id<>(AriKeysChannels.HANDSHAKE_CHANNEL);
-		public static final PacketCodec<RegistryByteBuf, Handshake> CODEC = PacketCodec.of(Handshake::write, Handshake::read);
+	public record Handshake() implements CustomPacketPayload {
+		public static final Type<Handshake> ID = new Type<>(AriKeysChannels.HANDSHAKE_CHANNEL);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Handshake> CODEC = StreamCodec.ofMember(Handshake::write, Handshake::read);
 
-		private void write(RegistryByteBuf buf) {}
+		private void write(RegistryFriendlyByteBuf buf) {}
 
-		private static Handshake read(RegistryByteBuf buf) {
+		private static Handshake read(RegistryFriendlyByteBuf buf) {
 			readFully(buf);
 			return new Handshake();
 		}
 
 		@Override
-		public Id<Handshake> getId() {
+		public Type<Handshake> type() {
 			return ID;
 		}
 	}
 
-	public record AddKey(KeyAddData data) implements CustomPayload {
-		public static final Id<AddKey> ID = new Id<>(AriKeysChannels.ADD_KEY_CHANNEL);
-		public static final PacketCodec<RegistryByteBuf, AddKey> CODEC = PacketCodec.of(AddKey::write, AddKey::read);
+	public record AddKey(KeyAddData data) implements CustomPacketPayload {
+		public static final Type<AddKey> ID = new Type<>(AriKeysChannels.ADD_KEY_CHANNEL);
+		public static final StreamCodec<RegistryFriendlyByteBuf, AddKey> CODEC = StreamCodec.ofMember(AddKey::write, AddKey::read);
 
-		private void write(RegistryByteBuf buf) {}
+		private void write(RegistryFriendlyByteBuf buf) {}
 
-		private static AddKey read(RegistryByteBuf buf) {
+		private static AddKey read(RegistryFriendlyByteBuf buf) {
 			KeyAddData keyData = KeyAddData.fromBuffer(buf);
 			readFully(buf);
 			return new AddKey(keyData);
 		}
 
 		@Override
-		public Id<AddKey> getId() {
+		public Type<AddKey> type() {
 			return ID;
 		}
 	}
 
-	public record Load() implements CustomPayload {
-		public static final Id<Load> ID = new Id<>(AriKeysChannels.LOAD_CHANNEL);
-		public static final PacketCodec<RegistryByteBuf, Load> CODEC = PacketCodec.of(Load::write, Load::read);
+	public record Load() implements CustomPacketPayload {
+		public static final Type<Load> ID = new Type<>(AriKeysChannels.LOAD_CHANNEL);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Load> CODEC = StreamCodec.ofMember(Load::write, Load::read);
 
-		private void write(RegistryByteBuf buf) {}
+		private void write(RegistryFriendlyByteBuf buf) {}
 
-		private static Load read(RegistryByteBuf buf) {
+		private static Load read(RegistryFriendlyByteBuf buf) {
 			readFully(buf);
 			return new Load();
 		}
 
 		@Override
-		public Id<Load> getId() {
+		public Type<Load> type() {
 			return ID;
 		}
 	}
 
-	public record Key(KeyPressData data) implements CustomPayload {
-		public static final Id<Key> ID = new Id<>(AriKeysChannels.KEY_CHANNEL);
-		public static final PacketCodec<RegistryByteBuf, Key> CODEC = PacketCodec.of(Key::write, Key::read);
+	public record Key(KeyPressData data) implements CustomPacketPayload {
+		public static final Type<Key> ID = new Type<>(AriKeysChannels.KEY_CHANNEL);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Key> CODEC = StreamCodec.ofMember(Key::write, Key::read);
 
-		private void write(RegistryByteBuf buf) {
+		private void write(RegistryFriendlyByteBuf buf) {
 			buf.writeByte(0);
 			data.write(buf);
 		}
 
-		private static Key read(RegistryByteBuf buf) {
+		private static Key read(RegistryFriendlyByteBuf buf) {
 			readFully(buf);
 			return new Key(null);
 		}
 
 		@Override
-		public Id<Key> getId() {
+		public Type<Key> type() {
 			return ID;
 		}
 	}
 
-	protected static void readFully(PacketByteBuf buf) {
+	protected static void readFully(FriendlyByteBuf buf) {
 		while(buf.readableBytes() != 0)
 			buf.readByte();
 	}

@@ -1,13 +1,12 @@
 package eu.asangarin.arikeys;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import eu.asangarin.arikeys.util.ModifierKey;
 import eu.asangarin.arikeys.util.network.KeyAddData;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,17 +14,17 @@ import java.util.Set;
 public class AriKey {
 	private final Identifier id;
 	private final String name, category;
-	private final InputUtil.Key keyCode;
-	private InputUtil.Key boundKeyCode;
+	private final InputConstants.Key keyCode;
+	private InputConstants.Key boundKeyCode;
 	private final Set<ModifierKey> modifiers;
 	@Setter
 	private Set<ModifierKey> boundModifiers;
 
 	public AriKey(KeyAddData data) {
-		this(data.getId(), data.getName(), data.getCategory(), InputUtil.Type.KEYSYM.createFromCode(data.getDefKey()), data.getModifiers());
+		this(data.getId(), data.getName(), data.getCategory(), InputConstants.Type.KEYSYM.getOrCreate(data.getDefKey()), data.getModifiers());
 	}
 
-	public AriKey(Identifier id, String name, String category, InputUtil.Key keyCode, int[] modifiers) {
+	public AriKey(Identifier id, String name, String category, InputConstants.Key keyCode, int[] modifiers) {
 		this.id = id;
 		this.name = name;
 		this.category = category;
@@ -35,11 +34,11 @@ public class AriKey {
 		this.boundModifiers = new HashSet<>(this.modifiers);
 	}
 
-	public void setBoundKey(InputUtil.Key key, boolean handleModifiers) {
+	public void setBoundKey(InputConstants.Key key, boolean handleModifiers) {
 		if (handleModifiers) {
 			Set<ModifierKey> mods = new HashSet<>();
 			for (ModifierKey modifier : ModifierKey.ALL)
-				if (InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), modifier.getCode())) mods.add(modifier);
+				if (InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), modifier.getCode())) mods.add(modifier);
 			setBoundModifiers(mods);
 		}
 		this.boundKeyCode = key;
@@ -54,12 +53,12 @@ public class AriKey {
 	}
 
 	public boolean isUnbound() {
-		return boundKeyCode.equals(InputUtil.UNKNOWN_KEY);
+		return boundKeyCode.equals(InputConstants.UNKNOWN);
 	}
 
 	public boolean testModifiers() {
 		for (ModifierKey key : boundModifiers)
-			if (!InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), key.getCode())) return false;
+			if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), key.getCode())) return false;
 		return true;
 	}
 

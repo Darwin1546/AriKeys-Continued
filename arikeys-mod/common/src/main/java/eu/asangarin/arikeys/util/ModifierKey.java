@@ -1,9 +1,8 @@
 package eu.asangarin.arikeys.util;
 
 import lombok.Getter;
-import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,13 +21,13 @@ public enum ModifierKey {
 	};
 
 	private final int id, code;
-	private final InputUtil.Key key;
+	private final InputConstants.Key key;
 	private final String translationKey;
 
 	ModifierKey(int id, int code) {
 		this.id = id;
 		this.code = code;
-		this.key = InputUtil.Type.KEYSYM.createFromCode(code);
+		this.key = InputConstants.Type.KEYSYM.getOrCreate(code);
 		this.translationKey = "arikeys.modifier." + name().toLowerCase();
 	}
 

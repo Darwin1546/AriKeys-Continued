@@ -1,17 +1,17 @@
 package eu.asangarin.arikeys.util.network;
 
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 
 @RequiredArgsConstructor
 public class KeyPressData {
 	private final Identifier id;
 	private final boolean release;
 
-	public void write(PacketByteBuf buf) {
-		buf.writeString(id.getNamespace());
-		buf.writeString(id.getPath());
+	public void write(FriendlyByteBuf buf) {
+		buf.writeUtf(id.getNamespace());
+		buf.writeUtf(id.getPath());
 		buf.writeBoolean(release);
 	}
 }

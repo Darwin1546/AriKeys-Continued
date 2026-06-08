@@ -1,27 +1,27 @@
 package eu.asangarin.arikeys.neoforge;
 
 import eu.asangarin.arikeys.AriKeys;
+import eu.asangarin.arikeys.AriKeysPlatform;
 import eu.asangarin.arikeys.util.AriKeysIO;
 import eu.asangarin.arikeys.util.AriKeysPayloads;
 import eu.asangarin.arikeys.util.network.KeyAddData;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import net.neoforged.neoforgespi.Environment;
 
-@Mod(AriKeys.MOD_ID)
+@Mod(value = AriKeys.MOD_ID, dist = Dist.CLIENT)
 public class AriKeysNeoForge {
 	public AriKeysNeoForge(IEventBus modBus) {
-		if (Environment.get().getDist().isClient()) {
-			modBus.addListener(this::handlePacketRegistration);
-			NeoForge.EVENT_BUS.addListener(this::handlePlayerLogin);
-			NeoForge.EVENT_BUS.addListener(this::handlePlayerDisconnect);
-		}
+		AriKeysPlatform.init(new AriKeysPlatformImpl());
+		modBus.addListener(this::handlePacketRegistration);
+		NeoForge.EVENT_BUS.addListener(this::handlePlayerLogin);
+		NeoForge.EVENT_BUS.addListener(this::handlePlayerDisconnect);
 	}
 
 	private void handlePacketRegistration(RegisterPayloadHandlersEvent event) {
@@ -42,12 +42,12 @@ public class AriKeysNeoForge {
 	}
 
 	private void handlePlayerLogin(EntityJoinLevelEvent event) {
-		if (MinecraftClient.getInstance().player == null || (event.getEntity().getUuid() != MinecraftClient.getInstance().player.getUuid())) return;
+		if (Minecraft.getInstance().player == null || !event.getEntity().getUUID().equals(Minecraft.getInstance().player.getUUID())) return;
 		AriKeys.handleConnect();
 	}
 
 	private void handlePlayerDisconnect(EntityLeaveLevelEvent event) {
-		if (MinecraftClient.getInstance().player == null || (event.getEntity().getUuid() != MinecraftClient.getInstance().player.getUuid())) return;
+		if (Minecraft.getInstance().player == null || !event.getEntity().getUUID().equals(Minecraft.getInstance().player.getUUID())) return;
 		AriKeys.handleDisconnect();
 	}
 }

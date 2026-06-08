@@ -2,8 +2,8 @@ package eu.asangarin.arikeys.util.network;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 
 @Getter
 @RequiredArgsConstructor
@@ -13,16 +13,16 @@ public class KeyAddData {
 	private final int defKey;
 	private final int[] modifiers;
 
-	public static KeyAddData fromBuffer(PacketByteBuf buf) {
+	public static KeyAddData fromBuffer(FriendlyByteBuf buf) {
 		buf.readByte();
-		String path = buf.readString();
-		String key = buf.readString();
+		String path = buf.readUtf();
+		String key = buf.readUtf();
 		int defKey = buf.readInt();
-		String name = buf.readString();
-		String category = buf.readString();
-		int[] modifiers = buf.readIntArray();
+		String name = buf.readUtf();
+		String category = buf.readUtf();
+		int[] modifiers = buf.readVarIntArray();
 
-		Identifier id = Identifier.of(path, key);
+		Identifier id = Identifier.fromNamespaceAndPath(path, key);
 		return new KeyAddData(id, name, category, defKey, modifiers);
 	}
 }

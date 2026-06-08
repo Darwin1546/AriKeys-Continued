@@ -1,6 +1,7 @@
 package eu.asangarin.arikeys.fabric;
 
 import eu.asangarin.arikeys.AriKeys;
+import eu.asangarin.arikeys.AriKeysPlatform;
 import eu.asangarin.arikeys.util.AriKeysIO;
 import eu.asangarin.arikeys.util.AriKeysPayloads;
 import net.fabricmc.api.ClientModInitializer;
@@ -12,6 +13,7 @@ public class AriKeysFabric implements ClientModInitializer {
 	@SuppressWarnings("resource")
 	@Override
 	public void onInitializeClient() {
+		AriKeysPlatform.init(new AriKeysPlatformImpl());
 		PayloadTypeRegistry.playC2S().register(AriKeysPayloads.Handshake.ID, AriKeysPayloads.Handshake.CODEC);
 		PayloadTypeRegistry.playC2S().register(AriKeysPayloads.Key.ID, AriKeysPayloads.Key.CODEC);
 		PayloadTypeRegistry.playS2C().register(AriKeysPayloads.AddKey.ID, AriKeysPayloads.AddKey.CODEC);

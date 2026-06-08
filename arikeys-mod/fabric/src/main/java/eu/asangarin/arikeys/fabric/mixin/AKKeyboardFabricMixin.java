@@ -1,16 +1,16 @@
 package eu.asangarin.arikeys.fabric.mixin;
 
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
-
+import com.mojang.blaze3d.platform.InputConstants;
+import java.util.List;
 import java.util.Map;
+import net.minecraft.client.KeyMapping;
 
-@Mixin(KeyBinding.class)
+@Mixin(KeyMapping.class)
 public interface AKKeyboardFabricMixin {
-	@Accessor("KEY_TO_BINDINGS")
-	static Map<InputUtil.Key, KeyBinding> getKeyBindings() {
+	@Accessor("MAP")
+	static Map<InputConstants.Key, List<KeyMapping>> getKeyBindings() {
 		throw new AssertionError();
 	}
 }

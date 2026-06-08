@@ -5,29 +5,28 @@ import eu.asangarin.arikeys.AriKey;
 import eu.asangarin.arikeys.AriKeys;
 import eu.asangarin.arikeys.util.AriKeysIO;
 import eu.asangarin.arikeys.util.ModifierKey;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.screen.narration.NarrationPart;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ElementListWidget;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 /** TODO: Get this up-to-date, for version 1.20.6 and above */
-public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsListWidget.Entry> {
+public class AriKeyControlsListWidget extends ContainerObjectSelectionList<AriKeyControlsListWidget.Entry> {
 	final AriKeysOptions parent;
 	int maxKeyNameLength;
 
-	public AriKeyControlsListWidget(AriKeysOptions parent, MinecraftClient client) {
+	public AriKeyControlsListWidget(AriKeysOptions parent, Minecraft client) {
 		super(client, parent.width + 45, parent.height - 52, 20, 20);
 		this.parent = parent;
 		String category = null;
@@ -36,11 +35,11 @@ public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsLi
 			String keyCat = ariKey.getCategory();
 			if (!keyCat.equals(category)) {
 				category = keyCat;
-				this.addEntry(new CategoryEntry(Text.literal(keyCat)));
+				this.addEntry(new CategoryEntry(Component.literal(keyCat)));
 			}
 
-			Text text = Text.literal(ariKey.getName());
-			int i = client.textRenderer.getWidth(text);
+			Component text = Component.literal(ariKey.getName());
+			int i = client.font.width(text);
 			if (i > this.maxKeyNameLength) {
 				this.maxKeyNameLength = i;
 			}
@@ -55,33 +54,34 @@ public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsLi
 	}
 
 	public class CategoryEntry extends AriKeyControlsListWidget.Entry {
-		final Text text;
+		final Component text;
 		private final int textWidth;
 
-		public CategoryEntry(Text text) {
+		public CategoryEntry(Component text) {
 			this.text = text;
-			this.textWidth = AriKeyControlsListWidget.this.client.textRenderer.getWidth(this.text);
+			this.textWidth = AriKeyControlsListWidget.this.minecraft.font.width(this.text);
 		}
 
-		public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-			assert client.currentScreen != null;
-			int width = (client.currentScreen.width / 2 - this.textWidth / 2);
-			int height = y + entryHeight;
-			context.drawText(client.textRenderer, this.text, width, height - 9 - 1, 16777215, false);
+		@Override
+		public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+			assert minecraft.screen != null;
+			int width = (minecraft.screen.width / 2 - this.textWidth / 2);
+			int height = getContentY() + getContentHeight();
+			context.drawString(minecraft.font, this.text, width, height - 9 - 1, 16777215, false);
 		}
 
-		public List<? extends Element> children() {
+		public List<? extends GuiEventListener> children() {
 			return Collections.emptyList();
 		}
 
-		public List<? extends Selectable> selectableChildren() {
-			return ImmutableList.of(new Selectable() {
-				public Selectable.SelectionType getType() {
-					return Selectable.SelectionType.HOVERED;
+		public List<? extends NarratableEntry> narratables() {
+			return ImmutableList.of(new NarratableEntry() {
+				public NarratableEntry.NarrationPriority narrationPriority() {
+					return NarratableEntry.NarrationPriority.HOVERED;
 				}
 
-				public void appendNarrations(NarrationMessageBuilder builder) {
-					builder.put(NarrationPart.TITLE, CategoryEntry.this.text);
+				public void updateNarration(NarrationElementOutput builder) {
+					builder.add(NarratedElementType.TITLE, CategoryEntry.this.text);
 				}
 			});
 		}
@@ -89,32 +89,35 @@ public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsLi
 
 	public class KeyBindingEntry extends AriKeyControlsListWidget.Entry {
 		private final AriKey ariKey;
-		private final Text bindingName;
-		private final ButtonWidget editButton;
-		private final ButtonWidget resetButton;
+		private final Component bindingName;
+		private final Button editButton;
+		private final Button resetButton;
 
-		KeyBindingEntry(AriKey ariKey, Text bindingName) {
+		KeyBindingEntry(AriKey ariKey, Component bindingName) {
 			this.ariKey = ariKey;
 			this.bindingName = bindingName;
 
-			this.editButton = ButtonWidget.builder(bindingName, (button) -> AriKeyControlsListWidget.this.parent.focusedMKey = ariKey)
-					.dimensions(0, 0, 135, 20).narrationSupplier(
-							supplier -> ariKey.isUnbound() ? Text.translatable("narrator.controls.unbound", bindingName) : Text.translatable(
+			this.editButton = Button.builder(bindingName, (button) -> AriKeyControlsListWidget.this.parent.focusedMKey = ariKey)
+					.bounds(0, 0, 135, 20).createNarration(
+							supplier -> ariKey.isUnbound() ? Component.translatable("narrator.controls.unbound", bindingName) : Component.translatable(
 									"narrator.controls.bound", bindingName, supplier.get())).build();
 
-			this.resetButton = ButtonWidget.builder(Text.translatable("controls.reset"), (button) -> {
+			this.resetButton = Button.builder(Component.translatable("controls.reset"), (button) -> {
 				ariKey.setBoundKey(ariKey.getKeyCode(), false);
 				ariKey.resetBoundModifiers();
 				AriKeysIO.save();
-				KeyBinding.updateKeysByCode();
-			}).dimensions(0, 0, 50, 20).narrationSupplier(supplier -> Text.translatable("narrator.controls.reset", bindingName)).build();
+				KeyMapping.resetMapping();
+			}).bounds(0, 0, 50, 20).createNarration(supplier -> Component.translatable("narrator.controls.reset", bindingName)).build();
 		}
 
-		public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+		@Override
+		public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			boolean bl = parent.focusedMKey == this.ariKey;
+			int x = getContentX();
+			int y = getContentY();
 			int width = x + 20 - maxKeyNameLength;
-			int height = y + entryHeight / 2;
-			context.drawText(client.textRenderer, this.bindingName, width, height - 9 / 2, 16777215, false);
+			int height = y + getContentHeight() / 2;
+			context.drawString(minecraft.font, this.bindingName, width, height - 9 / 2, 16777215, false);
 
 			this.resetButton.setX(x + 210);
 			this.resetButton.setY(y);
@@ -122,18 +125,18 @@ public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsLi
 			this.resetButton.render(context, mouseX, mouseY, tickDelta);
 			this.editButton.setX(x + 65);
 			this.editButton.setY(y);
-			MutableText editMessage = Text.empty();
+			MutableComponent editMessage = Component.empty();
 			for (ModifierKey modifier : this.ariKey.getBoundModifiers()) {
-				editMessage.append(Text.translatable(modifier.getTranslationKey()));
-				editMessage.append(Text.literal(" + "));
+				editMessage.append(Component.translatable(modifier.getTranslationKey()));
+				editMessage.append(Component.literal(" + "));
 			}
-			editMessage.append(this.ariKey.getBoundKeyCode().getLocalizedText().copyContentOnly());
+			editMessage.append(this.ariKey.getBoundKeyCode().getDisplayName().copy());
 			editMessage = editMessage.copy();
 			boolean bl2 = false;
 			if (!this.ariKey.isUnbound()) {
-				final List<KeyBinding> bindings = new ArrayList<>(List.of(client.options.allKeys));
-				for (KeyBinding keyBinding : bindings) {
-					if (keyBinding.getBoundKeyTranslationKey().equals(ariKey.getBoundKeyCode().getTranslationKey()) && ariKey.getBoundModifiers()
+				final List<KeyMapping> bindings = new ArrayList<>(List.of(minecraft.options.keyMappings));
+				for (KeyMapping keyBinding : bindings) {
+					if (keyBinding.saveString().equals(ariKey.getBoundKeyCode().getName()) && ariKey.getBoundModifiers()
 							.isEmpty()) {
 						bl2 = true;
 						break;
@@ -150,35 +153,24 @@ public class AriKeyControlsListWidget extends ElementListWidget<AriKeyControlsLi
 			}
 
 			if (bl) {
-				this.editButton.setMessage((Text.literal("> ")).append(editMessage.formatted(Formatting.YELLOW)).append(" <").formatted(Formatting.YELLOW));
+				this.editButton.setMessage((Component.literal("> ")).append(editMessage.withStyle(ChatFormatting.YELLOW)).append(" <").withStyle(ChatFormatting.YELLOW));
 			} else if (bl2) {
-				this.editButton.setMessage(editMessage.formatted(Formatting.RED));
+				this.editButton.setMessage(editMessage.withStyle(ChatFormatting.RED));
 			} else this.editButton.setMessage(editMessage);
 
 			this.editButton.render(context, mouseX, mouseY, tickDelta);
 		}
 
-		public List<? extends Element> children() {
+		public List<? extends GuiEventListener> children() {
 			return ImmutableList.of(this.editButton, this.resetButton);
 		}
 
-		public List<? extends Selectable> selectableChildren() {
+		public List<? extends NarratableEntry> narratables() {
 			return ImmutableList.of(this.editButton, this.resetButton);
 		}
 
-		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-			if (this.editButton.mouseClicked(mouseX, mouseY, button)) {
-				return true;
-			} else {
-				return this.resetButton.mouseClicked(mouseX, mouseY, button);
-			}
-		}
-
-		public boolean mouseReleased(double mouseX, double mouseY, int button) {
-			return this.editButton.mouseReleased(mouseX, mouseY, button) || this.resetButton.mouseReleased(mouseX, mouseY, button);
-		}
 	}
 
-	public abstract static class Entry extends ElementListWidget.Entry<AriKeyControlsListWidget.Entry> {
+	public abstract static class Entry extends ContainerObjectSelectionList.Entry<AriKeyControlsListWidget.Entry> {
 	}
 }

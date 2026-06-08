@@ -1,0 +1,117 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and release
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-mods:
+    name: Build Fabric and NeoForge mods
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build mods
+        working-directory: arikeys-mod
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build --no-daemon --no-parallel --max-workers=1
+
+      - name: Collect mod jars
+        run: |
+          mkdir -p release
+          find arikeys-mod/fabric/build/libs -maxdepth 1 -type f -name "arikeys-fabric-*.jar" \
+            ! -name "*-sources.jar" ! -name "*-dev-shadow.jar" -exec cp {} release/ \;
+          find arikeys-mod/neoforge/build/libs -maxdepth 1 -type f -name "arikeys-neoforge-*.jar" \
+            ! -name "*-sources.jar" ! -name "*-dev-shadow.jar" -exec cp {} release/ \;
+          test "$(find release -maxdepth 1 -type f -name '*.jar' | wc -l)" -eq 2
+
+      - name: Upload mod jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: mods
+          path: release/*.jar
+          if-no-files-found: error
+
+  build-plugin:
+    name: Build server plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: arikeys-plugin/pom.xml
+
+      - name: Build plugin
+        working-directory: arikeys-plugin
+        run: mvn --batch-mode --no-transfer-progress clean package -DskipTests
+
+      - name: Collect plugin jar
+        run: |
+          mkdir -p release
+          find arikeys-plugin/target -maxdepth 1 -type f -name "arikeysplugin-*.jar" \
+            ! -name "original-*.jar" -exec cp {} release/ \;
+          test "$(find release -maxdepth 1 -type f -name '*.jar' | wc -l)" -eq 1
+
+      - name: Upload plugin jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: release/*.jar
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub release
+    needs:
+      - build-mods
+      - build-plugin
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release jars
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: release/*.jar

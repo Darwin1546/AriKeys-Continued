@@ -23,8 +23,8 @@
     "arikeys-fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.9",
-    "minecraft": "~1.21",
+    "fabricloader": ">=0.18.6",
+    "minecraft": "~1.21.11",
     "java": ">=21",
     "fabric-api": "*"
   }
