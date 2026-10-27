@@ -14,10 +14,10 @@ public class AriKeysFabric implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		AriKeysPlatform.init(new AriKeysPlatformImpl());
-		PayloadTypeRegistry.playC2S().register(AriKeysPayloads.Handshake.ID, AriKeysPayloads.Handshake.CODEC);
-		PayloadTypeRegistry.playC2S().register(AriKeysPayloads.Key.ID, AriKeysPayloads.Key.CODEC);
-		PayloadTypeRegistry.playS2C().register(AriKeysPayloads.AddKey.ID, AriKeysPayloads.AddKey.CODEC);
-		PayloadTypeRegistry.playS2C().register(AriKeysPayloads.Load.ID, AriKeysPayloads.Load.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(AriKeysPayloads.Handshake.ID, AriKeysPayloads.Handshake.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(AriKeysPayloads.Key.ID, AriKeysPayloads.Key.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(AriKeysPayloads.AddKey.ID, AriKeysPayloads.AddKey.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(AriKeysPayloads.Load.ID, AriKeysPayloads.Load.CODEC);
 
 		// Configure AriKeys on join and clean up on disconnect
 		ClientPlayConnectionEvents.DISCONNECT.register(((handler, client) -> AriKeys.handleDisconnect()));

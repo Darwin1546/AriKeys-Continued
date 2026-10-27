@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -44,9 +44,9 @@ jobs:
         run: |
           mkdir -p release
           find arikeys-mod/fabric/build/libs -maxdepth 1 -type f -name "arikeys-fabric-*.jar" \
-            ! -name "*-sources.jar" ! -name "*-dev-shadow.jar" -exec cp {} release/ \;
+            ! -name "*-sources.jar" ! -name "*-dev.jar" -exec cp {} release/ \;
           find arikeys-mod/neoforge/build/libs -maxdepth 1 -type f -name "arikeys-neoforge-*.jar" \
-            ! -name "*-sources.jar" ! -name "*-dev-shadow.jar" -exec cp {} release/ \;
+            ! -name "*-sources.jar" ! -name "*-dev.jar" -exec cp {} release/ \;
           test "$(find release -maxdepth 1 -type f -name '*.jar' | wc -l)" -eq 2
 
       - name: Upload mod jars
@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
           cache: maven
           cache-dependency-path: arikeys-plugin/pom.xml
 

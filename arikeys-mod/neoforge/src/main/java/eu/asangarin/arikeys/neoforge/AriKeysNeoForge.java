@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -17,11 +18,14 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @Mod(value = AriKeys.MOD_ID, dist = Dist.CLIENT)
 public class AriKeysNeoForge {
+	private final AriKeysPlatformImpl platform = new AriKeysPlatformImpl();
+
 	public AriKeysNeoForge(IEventBus modBus) {
-		AriKeysPlatform.init(new AriKeysPlatformImpl());
+		AriKeysPlatform.init(platform);
 		modBus.addListener(this::handlePacketRegistration);
 		NeoForge.EVENT_BUS.addListener(this::handlePlayerLogin);
 		NeoForge.EVENT_BUS.addListener(this::handlePlayerDisconnect);
+		NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> platform.tick());
 	}
 
 	private void handlePacketRegistration(RegisterPayloadHandlersEvent event) {

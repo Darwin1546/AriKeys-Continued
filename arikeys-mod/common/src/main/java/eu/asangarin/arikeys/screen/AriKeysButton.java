@@ -17,6 +17,6 @@ public class AriKeysButton extends ImageButton {
 
 	public AriKeysButton(Screen parent) {
 		super(20, 20, BUTTON_TEXTURES,
-			(action) -> Minecraft.getInstance().setScreen(new AriKeysOptions(parent)), CommonComponents.EMPTY);
+			(action) -> Minecraft.getInstance().gui.setScreen(new AriKeysOptions(parent)), CommonComponents.EMPTY);
 	}
 }

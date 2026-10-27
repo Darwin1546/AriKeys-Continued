@@ -27,7 +27,7 @@ public class AKKeyboardMixin {
 	@Inject(method = "set", at = @At("HEAD"))
 	private static void input(InputConstants.Key key, boolean pressed, CallbackInfo ci) {
 		// Only check for keybinds while outside a GUI
-		if (Minecraft.getInstance().screen != null) return;
+		if (Minecraft.getInstance().gui.screen() != null) return;
 
 		Collection<KeyMapping> keyBindings = AriKeysPlatform.getKeyBinding(key);
 		for(KeyMapping binding : keyBindings) {

@@ -11,7 +11,7 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -63,11 +63,11 @@ public class AriKeyControlsListWidget extends ContainerObjectSelectionList<AriKe
 		}
 
 		@Override
-		public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-			assert minecraft.screen != null;
-			int width = (minecraft.screen.width / 2 - this.textWidth / 2);
+		public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+			assert minecraft.gui.screen() != null;
+			int width = (minecraft.gui.screen().width / 2 - this.textWidth / 2);
 			int height = getContentY() + getContentHeight();
-			context.drawString(minecraft.font, this.text, width, height - 9 - 1, 16777215, false);
+			context.text(minecraft.font, this.text, width, height - 9 - 1, 0xFFFFFFFF, false);
 		}
 
 		public List<? extends GuiEventListener> children() {
@@ -111,18 +111,18 @@ public class AriKeyControlsListWidget extends ContainerObjectSelectionList<AriKe
 		}
 
 		@Override
-		public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+		public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			boolean bl = parent.focusedMKey == this.ariKey;
 			int x = getContentX();
 			int y = getContentY();
 			int width = x + 20 - maxKeyNameLength;
 			int height = y + getContentHeight() / 2;
-			context.drawString(minecraft.font, this.bindingName, width, height - 9 / 2, 16777215, false);
+			context.text(minecraft.font, this.bindingName, width, height - 9 / 2, 0xFFFFFFFF, false);
 
 			this.resetButton.setX(x + 210);
 			this.resetButton.setY(y);
 			this.resetButton.active = this.ariKey.hasChanged();
-			this.resetButton.render(context, mouseX, mouseY, tickDelta);
+			this.resetButton.extractRenderState(context, mouseX, mouseY, tickDelta);
 			this.editButton.setX(x + 65);
 			this.editButton.setY(y);
 			MutableComponent editMessage = Component.empty();
@@ -158,7 +158,7 @@ public class AriKeyControlsListWidget extends ContainerObjectSelectionList<AriKe
 				this.editButton.setMessage(editMessage.withStyle(ChatFormatting.RED));
 			} else this.editButton.setMessage(editMessage);
 
-			this.editButton.render(context, mouseX, mouseY, tickDelta);
+			this.editButton.extractRenderState(context, mouseX, mouseY, tickDelta);
 		}
 
 		public List<? extends GuiEventListener> children() {

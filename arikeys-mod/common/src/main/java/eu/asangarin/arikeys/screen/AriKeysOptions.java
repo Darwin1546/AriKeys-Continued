@@ -5,12 +5,11 @@ import eu.asangarin.arikeys.AriKey;
 import eu.asangarin.arikeys.AriKeys;
 import eu.asangarin.arikeys.util.AriKeysIO;
 import eu.asangarin.arikeys.util.ModifierKey;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
@@ -61,7 +60,7 @@ public class AriKeysOptions extends OptionsSubScreen {
 	@Override
 	public boolean keyPressed(KeyEvent event) {
 		if (this.focusedMKey != null) {
-			if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+			if (event.key() == InputConstants.KEY_ESCAPE) {
 				focusedMKey.setBoundKey(InputConstants.UNKNOWN, false);
 				focusedMKey.setBoundModifiers(new HashSet<>());
 			} else if (isModifier(event.key())) return super.keyPressed(event);
@@ -97,8 +96,8 @@ public class AriKeysOptions extends OptionsSubScreen {
 	}
 
 	@Override
-	public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-		super.render(context, mouseX, mouseY, delta);
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
 
 		/*this.keyBindingListWidget.render(context, mouseX, mouseY, delta);
 		context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 8, 0xFFFFFF);*/

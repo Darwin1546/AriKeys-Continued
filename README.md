@@ -12,7 +12,7 @@ It is maintained only to keep AriKeys working on newer Minecraft versions. No ne
 
 The PayPal button above belongs to and supports the original author, ASangarin.
 
-Latest supported Minecraft version: **1.21.11**
+Latest supported Minecraft version: **26.3**
 
 ## Installation:
 - **Fabric**
